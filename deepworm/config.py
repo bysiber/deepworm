@@ -44,7 +44,7 @@ class Config:
     # Search settings
     search_region: str = "wt-wt"
     search_max_results: int = 8
-    search_provider: str = "duckduckgo"  # duckduckgo, brave, searxng
+    search_provider: str = "duckduckgo"  # duckduckgo, brave, searxng, tavily
 
     # Rate limiting
     max_requests_per_minute: int = 60  # LLM API rate limit
@@ -124,7 +124,7 @@ class Config:
         """
         VALID_PROVIDERS = {"openai", "anthropic", "google", "openrouter", "ollama"}
         VALID_FORMATS = {"markdown", "html", "text", "json", "pdf"}
-        VALID_SEARCH_PROVIDERS = {"duckduckgo", "brave", "searxng"}
+        VALID_SEARCH_PROVIDERS = {"duckduckgo", "brave", "searxng", "tavily"}
 
         if self.provider not in VALID_PROVIDERS:
             raise ValueError(

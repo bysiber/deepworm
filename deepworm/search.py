@@ -1,6 +1,6 @@
 """Web search with multiple providers.
 
-Supports DuckDuckGo (default), Brave Search API, and SearXNG.
+Supports DuckDuckGo (default), Brave Search API, SearXNG, and Tavily.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def search_web(
 ) -> list[SearchResult]:
     """Search the web using the specified provider.
 
-    Providers: duckduckgo (default), brave, searxng
+    Providers: duckduckgo (default), brave, searxng, tavily
     """
     # Check cache first
     if cache is not None:
@@ -62,6 +62,11 @@ def search_web(
             results = _search_searxng(query, max_results)
         except Exception as e:
             logger.debug("SearXNG search failed: %s", e)
+    elif provider == "tavily":
+        try:
+            results = _search_tavily(query, max_results)
+        except Exception as e:
+            logger.debug("Tavily search failed: %s", e)
 
     # Default/fallback: DuckDuckGo
     if not results:
@@ -285,5 +290,34 @@ def _search_searxng(query: str, max_results: int) -> list[SearchResult]:
             title=item.get("title", ""),
             url=item.get("url", ""),
             snippet=item.get("content", ""),
+        ))
+    return results
+
+
+def _search_tavily(query: str, max_results: int) -> list[SearchResult]:
+    """Search using Tavily API. Requires TAVILY_API_KEY env var."""
+    import os
+
+    api_key = os.getenv("TAVILY_API_KEY", "")
+    if not api_key:
+        raise ValueError("TAVILY_API_KEY not set")
+
+    from tavily import TavilyClient
+
+    client = TavilyClient(api_key=api_key)
+    response = client.search(
+        query=query,
+        max_results=max_results,
+        search_depth="advanced",
+        include_raw_content=True,
+    )
+
+    results = []
+    for item in response.get("results", [])[:max_results]:
+        results.append(SearchResult(
+            title=item.get("title", ""),
+            url=item.get("url", ""),
+            snippet=item.get("content", ""),
+            body=item.get("raw_content", None),
         ))
     return results
